@@ -1,9 +1,17 @@
 import pandas as pd
 import numpy as np
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, accuracy_score, roc_auc_score, f1_score
+from sklearn.metrics import (
+    mean_squared_error,
+    mean_absolute_error,
+    r2_score,
+    accuracy_score,
+    roc_auc_score,
+    f1_score,
+)
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
+
+sys.path.append(os.path.join(os.path.dirname(__file__), "src"))
 from mamrl import MAMRLRegressor, MAMRLClassifier
 import os
 import psutil
@@ -12,12 +20,13 @@ import pickle
 from pathlib import Path
 import glob
 
+
 def process_dataset(file_path: str, task_type: str) -> dict | None:
     try:
         print(f"\n{'='*50}")
         print(f"Processing: {file_path}")
         print(f"{'='*50}")
-        
+
         try:
             data = pd.read_pickle(file_path)
         except Exception as e:
@@ -27,18 +36,22 @@ def process_dataset(file_path: str, task_type: str) -> dict | None:
         print("Column names:", data.columns.tolist())
         print("First row:", data.iloc[0])
 
-        if '1D_2D_3D' not in data.columns or 'label' not in data.columns or 'split' not in data.columns:
+        if (
+            "1D_2D_3D" not in data.columns
+            or "label" not in data.columns
+            or "split" not in data.columns
+        ):
             print(f"Error: {file_path} missing required columns")
             return None
 
         # Feature extraction
-        features = np.array([x[:2303] for x in data['1D_2D_3D']])
-        labels = data['label'].values
-        splits = data['split'].values
+        features = np.array([x[:2303] for x in data["1D_2D_3D"]])
+        labels = data["label"].values
+        splits = data["split"].values
 
         # Split by 'split' column
-        train_mask = data['split'] == 'train'
-        test_mask = data['split'] == 'test'
+        train_mask = data["split"] == "train"
+        test_mask = data["split"] == "test"
 
         if train_mask.sum() == 0 or test_mask.sum() == 0:
             print("⚠ No valid split groups found, skipping.")
@@ -47,7 +60,7 @@ def process_dataset(file_path: str, task_type: str) -> dict | None:
         X_train, X_test = features[train_mask], features[test_mask]
         y_train, y_test = labels[train_mask], labels[test_mask]
 
-        if task_type == 'regression':
+        if task_type == "regression":
             print("Training MAMRL Regressor...")
             model = MAMRLRegressor(random_state=42, ignore_pretraining_limits=True)
             model.fit(X_train, y_train)
@@ -61,17 +74,17 @@ def process_dataset(file_path: str, task_type: str) -> dict | None:
             print(f"MSE: {mse:.4f}, RMSE: {rmse:.4f}, R²: {r2:.4f}")
 
             return {
-                'dataset': Path(file_path).stem,
-                'n_samples': len(features),
-                'n_features': features.shape[1],
-                'MSE': mse,
-                'RMSE': rmse,
-                'R-squared': r2,
-                'train_samples': len(X_train),
-                'test_samples': len(X_test)
+                "dataset": Path(file_path).stem,
+                "n_samples": len(features),
+                "n_features": features.shape[1],
+                "MSE": mse,
+                "RMSE": rmse,
+                "R-squared": r2,
+                "train_samples": len(X_train),
+                "test_samples": len(X_test),
             }
 
-        elif task_type == 'classification':
+        elif task_type == "classification":
             print("Training MAMRL Classifier...")
             model = MAMRLClassifier(random_state=42, ignore_pretraining_limits=True)
             model.fit(X_train, y_train)
@@ -86,31 +99,32 @@ def process_dataset(file_path: str, task_type: str) -> dict | None:
             print(f"Accuracy: {acc:.4f}, F1: {f1:.4f}, AUC: {auc:.4f}")
 
             return {
-                'dataset': Path(file_path).stem,
-                'n_samples': len(features),
-                'n_features': features.shape[1],
-                'Accuracy': acc,
-                'F1 Score': f1,
-                'AUC': auc,
-                'train_samples': len(X_train),
-                'test_samples': len(X_test)
+                "dataset": Path(file_path).stem,
+                "n_samples": len(features),
+                "n_features": features.shape[1],
+                "Accuracy": acc,
+                "F1 Score": f1,
+                "AUC": auc,
+                "train_samples": len(X_train),
+                "test_samples": len(X_test),
             }
 
     except Exception as e:
         print(f"❌ Error processing {file_path}: {e}")
         return None
 
+
 def main():
-    os.makedirs('result', exist_ok=True)
-    
-    pkl_dir = './data'
-    pkl_files = glob.glob(os.path.join(pkl_dir, '*.pkl'))
-    
+    os.makedirs("result", exist_ok=True)
+
+    pkl_dir = "./data"
+    pkl_files = glob.glob(os.path.join(pkl_dir, "*.pkl"))
+
     if not pkl_files:
         print("No .pkl files found.")
         return
 
-    task_type = 'classification'  # Change to 'classification' or 'regression'
+    task_type = "classification"  # Change to 'classification' or 'regression'
     results = []
 
     for i, file_path in enumerate(pkl_files, 1):
@@ -119,7 +133,7 @@ def main():
         if result:
             results.append(result)
             df = pd.DataFrame(results)
-            df.to_csv('result/test.csv', index=False)
+            df.to_csv("result/test.csv", index=False)
             print("\n📄 Intermediate results written to: result/test.csv")
 
     if results:
@@ -127,6 +141,7 @@ def main():
         print(pd.DataFrame(results))
     else:
         print("\n⚠ No results generated.")
+
 
 if __name__ == "__main__":
     main()
