@@ -1,146 +1,60 @@
-import pandas as pd
+# train.py
+import argparse
+import os
+import pickle
 import numpy as np
-from sklearn.metrics import (
-    mean_squared_error,
-    mean_absolute_error,
-    r2_score,
-    accuracy_score,
-    roc_auc_score,
-    f1_score,
-)
+import pandas as pd
+from pathlib import Path
 import sys
 import os
-
 sys.path.append(os.path.join(os.path.dirname(__file__), "src"))
-from mamrl import MAMRLRegressor, MAMRLClassifier
-import os
-import psutil
-import torch
-import pickle
-from pathlib import Path
-import glob
+from mamrl import MAMRLClassifier, MAMRLRegressor
 
 
-def process_dataset(file_path: str, task_type: str) -> dict | None:
-    try:
-        print(f"\n{'='*50}")
-        print(f"Processing: {file_path}")
-        print(f"{'='*50}")
+def load_dataset(file_path: str):
+    data = pd.read_pickle(file_path)
 
-        try:
-            data = pd.read_pickle(file_path)
-        except Exception as e:
-            print(f"Error reading pickle file: {e}")
-            return None
+    if "1D_2D_3D" not in data.columns or "label" not in data.columns or "split" not in data.columns:
+        raise ValueError("Missing required columns: '1D_2D_3D', 'label', or 'split'")
 
-        print("Column names:", data.columns.tolist())
-        print("First row:", data.iloc[0])
+    features = np.array([x[:2303] for x in data["1D_2D_3D"]])
+    labels = data["label"].values
+    splits = data["split"].values
 
-        if (
-            "1D_2D_3D" not in data.columns
-            or "label" not in data.columns
-            or "split" not in data.columns
-        ):
-            print(f"Error: {file_path} missing required columns")
-            return None
+    train_mask = splits == "train"
 
-        # Feature extraction
-        features = np.array([x[:2303] for x in data["1D_2D_3D"]])
-        labels = data["label"].values
-        splits = data["split"].values
+    X_train = features[train_mask]
+    y_train = labels[train_mask]
 
-        # Split by 'split' column
-        train_mask = data["split"] == "train"
-        test_mask = data["split"] == "test"
+    return X_train, y_train
 
-        if train_mask.sum() == 0 or test_mask.sum() == 0:
-            print("⚠ No valid split groups found, skipping.")
-            return None
 
-        X_train, X_test = features[train_mask], features[test_mask]
-        y_train, y_test = labels[train_mask], labels[test_mask]
+def train_model(X_train, y_train, task_type):
+    if task_type == "regression":
+        model = MAMRLRegressor(random_state=42, ignore_pretraining_limits=True)
+    else:
+        model = MAMRLClassifier(random_state=42, ignore_pretraining_limits=True)
 
-        if task_type == "regression":
-            print("Training MAMRL Regressor...")
-            model = MAMRLRegressor(random_state=42, ignore_pretraining_limits=True)
-            model.fit(X_train, y_train)
-            preds = model.predict(X_test)
-
-            mse = mean_squared_error(y_test, preds)
-            rmse = np.sqrt(mse)
-            r2 = r2_score(y_test, preds)
-
-            print(f"\n✅ Results for {file_path}:")
-            print(f"MSE: {mse:.4f}, RMSE: {rmse:.4f}, R²: {r2:.4f}")
-
-            return {
-                "dataset": Path(file_path).stem,
-                "n_samples": len(features),
-                "n_features": features.shape[1],
-                "MSE": mse,
-                "RMSE": rmse,
-                "R-squared": r2,
-                "train_samples": len(X_train),
-                "test_samples": len(X_test),
-            }
-
-        elif task_type == "classification":
-            print("Training MAMRL Classifier...")
-            model = MAMRLClassifier(random_state=42, ignore_pretraining_limits=True)
-            model.fit(X_train, y_train)
-            preds = model.predict(X_test)
-            probs = model.predict_proba(X_test)
-
-            acc = accuracy_score(y_test, preds)
-            f1 = f1_score(y_test, preds)
-            auc = roc_auc_score(y_test, probs[:, 1])
-
-            print(f"\n✅ Results for {file_path}:")
-            print(f"Accuracy: {acc:.4f}, F1: {f1:.4f}, AUC: {auc:.4f}")
-
-            return {
-                "dataset": Path(file_path).stem,
-                "n_samples": len(features),
-                "n_features": features.shape[1],
-                "Accuracy": acc,
-                "F1 Score": f1,
-                "AUC": auc,
-                "train_samples": len(X_train),
-                "test_samples": len(X_test),
-            }
-
-    except Exception as e:
-        print(f"❌ Error processing {file_path}: {e}")
-        return None
+    model.fit(X_train, y_train)
+    return model
 
 
 def main():
-    os.makedirs("result", exist_ok=True)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--input", type=str, required=True, help="Path to the .pkl data file")
+    parser.add_argument("--task_type", type=str, choices=["classification", "regression"], required=True)
+    parser.add_argument("--output", type=str, default="result/model.pkl", help="Where to save the trained model")
+    args = parser.parse_args()
 
-    pkl_dir = "./data"
-    pkl_files = glob.glob(os.path.join(pkl_dir, "*.pkl"))
+    os.makedirs(os.path.dirname(args.output), exist_ok=True)
 
-    if not pkl_files:
-        print("No .pkl files found.")
-        return
+    X_train, y_train = load_dataset(args.input)
+    model = train_model(X_train, y_train, args.task_type)
 
-    task_type = "classification"  # Change to 'classification' or 'regression'
-    results = []
+    with open(args.output, "wb") as f:
+        pickle.dump(model, f)
 
-    for i, file_path in enumerate(pkl_files, 1):
-        print(f"\n📦 Processing file {i}/{len(pkl_files)}: {file_path}")
-        result = process_dataset(file_path, task_type)
-        if result:
-            results.append(result)
-            df = pd.DataFrame(results)
-            df.to_csv("result/test.csv", index=False)
-            print("\n📄 Intermediate results written to: result/test.csv")
-
-    if results:
-        print("\n🎉 All done. Final results:")
-        print(pd.DataFrame(results))
-    else:
-        print("\n⚠ No results generated.")
+    print(f"\n✅ Model trained and saved to {args.output}")
 
 
 if __name__ == "__main__":
