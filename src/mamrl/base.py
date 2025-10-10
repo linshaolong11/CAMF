@@ -77,9 +77,12 @@ def initialize_mamrl_model(
         bar_distribution: The BarDistribution for regression (`None` if classifier).
     """
     # Handle auto model_path
-    download = True
+    download = False
     if isinstance(model_path, str) and model_path == "auto":
-        model_path = None  # type: ignore
+        if which == "classifier":
+            model_path = Path("./weights/mamrl-v2-classifier.ckpt")  # type: ignore
+        else:
+            model_path = Path("./weights/mamrl-v2-regressor.ckpt")  
 
     # Load model with potential caching
     if which == "classifier":

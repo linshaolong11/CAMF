@@ -169,13 +169,12 @@ dependencies:
       - seaborn==0.12.2
       - sympy==1.13.1
       - tabpfn==2.0.5
-      - tabpfn-community==0.0.4
       - threadpoolctl==3.5.0
       - tomli==2.2.1
-      - torch==2.5.0+cu118
+      - torch==2.5.0
       - torch-geometric==2.6.1
-      - torchaudio==2.5.0+cu118
-      - torchvision==0.20.0+cu118
+      - torchaudio==2.5.0
+      - torchvision==0.20.0
       - tqdm==4.67.1
       - triton==3.1.0
       - typing-extensions==4.12.2
