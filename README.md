@@ -27,10 +27,10 @@ unzip MPPDB.zip
 
 ## Train
 
-We provide an example of training using the bbb_logbb dataset. You need to specify the input file path, task type (classification or regression), and the output file path for saving the trained model.
+We provide an example of training using the BBB_logbb dataset. You need to specify the input file path, task type (classification or regression), and the output file path for saving the trained model.
 
 ```bash
-python train.py --input data/bbb_logbb.pkl --task_type classification --output result/out_bbb_logbb.pkl
+python train.py --input data/BBB_logbb.pkl --task_type classification --output result/out_BBB_logbb.pkl
 ```
 
 This will train a CAMF model on the given dataset and save the trained model to the specified location.
@@ -40,7 +40,7 @@ This will train a CAMF model on the given dataset and save the trained model to 
 To evaluate a trained CAMF model, specify the path to the saved model file, the input dataset, and the task type (classification or regression):
 
 ```bash
-python evaluate.py --model result/out_bbb_logbb.pkl --input data/bbb_logbb.pkl --task_type classification
+python evaluate.py --model result/out_BBB_logbb.pkl --input data/BBB_logbb.pkl --task_type classification
 ```
 This script will load the model and evaluate its performance on the test set contained in the specified dataset. 
 
