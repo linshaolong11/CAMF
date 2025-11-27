@@ -8,7 +8,7 @@ from pathlib import Path
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), "src"))
-from mamrl import MAMRLClassifier, MAMRLRegressor
+from camf import CAMFClassifier, CAMFRegressor
 
 
 def load_dataset(file_path: str):
@@ -31,9 +31,9 @@ def load_dataset(file_path: str):
 
 def train_model(X_train, y_train, task_type):
     if task_type == "regression":
-        model = MAMRLRegressor(random_state=42, ignore_pretraining_limits=True)
+        model = CAMFRegressor(random_state=42, ignore_pretraining_limits=True)
     else:
-        model = MAMRLClassifier(random_state=42, ignore_pretraining_limits=True)
+        model = CAMFClassifier(random_state=42, ignore_pretraining_limits=True)
 
     model.fit(X_train, y_train)
     return model

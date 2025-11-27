@@ -1,16 +1,16 @@
-# MAMRL: A Multimodal Adaptive Molecular Representation Learning Framework for Molecular Property Prediction
+# Adaptive Modality-Complementary Molecular Representation Framework for Accurate Prediction of Structure-Sensitive Properties
 
-We present a multimodal adaptive molecular representation framework (**MAMRL**) including MPP dataset construction, model evaluation, a multimodal module, and a case study. We construct a **large-scale benchmark** named **MPPDB**, comprising **ADMET**, **physicochemical properties**, **activity cliffs**, and **chirality-sensitive** datasets. MAMRL systematically benchmarks baseline and select high-performing candidates as **feature generators**. MAMRL integrates Random **Forest-based** importance scores and **bidirectional attention** to adaptively preserves and analyzes task-relevant **multimodal features**, reducing feature redundancy and computational cost. Across ADMET/physicochemical and activity-cliff datasets, MAMRL improves average R² by **21.4%** and **29.4%** over baselines, respectively. On a dataset of **90,364** optical rotatory strengths computes via **TD-DFT**, MAMRL demonstrates robust **stereochemical discrimination**. SHAP analyses of thrombin ligands show that MAMRL consistently identifies **six-membered aromatic rings** as key activity motifs, demonstrating its strong interpretability and structural sensitivity, which can further guide the design of **bioactive compounds**. MAMRL also correctly predicted **rofecoxib cardiotoxicity** and **obeticholic-acid hepatotoxicity**, supporting its utility for activity and safety assessment in real-world drug development.
+**Molecular structure-sensitive properties (SSP)**, such as **activity cliffs** and **chirality**, can **change abruptly** with subtle **motif-level** or **stereochemical** perturbations. Understanding SSP supports **lead optimization** and guides MPP models to capture **non-smooth** structure–property relationships. **Multimodal representations** perform well on conventional tasks, but their SSP contributions remain **unquantified**, and **multimodal redundancy** may reduce sensitivity to fine structural changes. We present **CAMF (Chirality- and Activity-cliff–aware Multimodal Framework)**, **an adaptive framework for modality-complementary molecular representations that accurately predicts SSP**. We curate **77** ADMET and physicochemical tasks to benchmark **feature extractors** and **assemble complementary multimodal representations**. **Random-forest** feature selection reduces redundancy, and a **bidirectional attention** module quantifies cross-modality contributions while capturing subtle structural variation. CAMF improves mean R² by **29.5%** on activity-cliff datasets and reduces MAE by**23.3%** on **90,364** chiral molecules with TD-DFT **optical rotatory** strengths over baselines. SHAP analysis of **thrombin ligands** highlights a **six-membered aromatic ring** as a key activity motif. Ablation study shows that **different molecular modalities provide complementary information** for MPP. **Only when this complementarity is coupled with adaptive mechanism can subtle structural changes be captured and SSP be accurately modeled and predicted**. Case studies on **rofecoxib cardiotoxicity** and **obeticholic-acid hepatotoxicity** illustrate utility for real-world efficacy.
 
-![MAMRL Framework](./images/MAMRL_framework.png)
+![CAMF Framework](./images/CAMF_framework.png)
 
 ## Setups
 
 ```bash
-git clone https://github.com/linshaolong11/MAMRL.git
-cd MAMRL
+git clone https://github.com/linshaolong11/CAMF.git
+cd CAMF
 mamba env create -f environment.yaml
-mamba activate MAMRL
+mamba activate CAMF
 ```
 
 ## Datasets
@@ -33,11 +33,11 @@ We provide an example of training using the bbb_logbb dataset. You need to speci
 python train.py --input data/bbb_logbb.pkl --task_type classification --output result/out_bbb_logbb.pkl
 ```
 
-This will train a MAMRL model on the given dataset and save the trained model to the specified location.
+This will train a CAMF model on the given dataset and save the trained model to the specified location.
 
 ## Evaluation
 
-To evaluate a trained MAMRL model, specify the path to the saved model file, the input dataset, and the task type (classification or regression):
+To evaluate a trained CAMF model, specify the path to the saved model file, the input dataset, and the task type (classification or regression):
 
 ```bash
 python evaluate.py --model result/out_bbb_logbb.pkl --input data/bbb_logbb.pkl --task_type classification
