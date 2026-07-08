@@ -14,14 +14,14 @@ mamba activate CAMF
 ```
 
 ## Datasets
-Due to the large size of the original training dataset **MPPDB**, it is not suitable for direct upload to GitHub. Therefore, we have hosted it on [Zenodo](https://zenodo.org/records/17310984/files/MPPDB.zip).
+Due to the large size of the original training dataset **SSPBench**, it is not suitable for direct upload to GitHub. Therefore, we have hosted it on [Zenodo](https://zenodo.org/records/21253431/files/SSPBench.zip).
 
 Please download the dataset from the link above and extract it into the `./data` directory before running the training or evaluation scripts.
 
 ```bash
 cd data 
-wget https://zenodo.org/records/17310984/files/MPPDB.zip
-unzip MPPDB.zip
+wget https://zenodo.org/records/21253431/files/SSPBench.zip
+unzip SSPBench.zip
 ```
 
 
